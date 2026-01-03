@@ -1,0 +1,47 @@
+    <% layout('/layouts/boilerplate') -%>
+    <div id="cluster-map" class="mb-3 rounded"></div>
+    <h2>All Campgrounds</h2>
+    <!-- <div class="mb-3">
+        <a href="/campgrounds/new">Add New Campground</a>
+    </div> -->
+    <% for(let campground of campgrounds) { %>
+        <div class="card mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <% if (campground.images.length) { %>
+                    <% let randomIndex = Math.floor(Math.random() * campground.images.length); %>
+                    <img crossorigin="anonymous" class="img-fluid rounded" alt="" src="<%= campground.images[randomIndex].url %>" style="width: 470px; height: 250px;">
+                    <% } else { %>
+                        <img crossorigin="anonymous" class="img-fluid rounded" alt="" src="https://res.cloudinary.com/dbqyfc76r/image/upload/v1766149539/images_bam8dz.png" style="width: 470px; height: 250px;">
+                    <% } %>
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title"><%= campground.title %></h5>
+                        <p class="card-text mb-2"><%= campground.description || `${campground.title} is a scenic campground located in ${campground.location}. It offers a peaceful environment surrounded by breathtaking natural beauty. Visitors can enjoy fresh air, open landscapes, and calming views throughout the day. The campground is ideal for nature lovers, solo travelers, and families alike. Whether you want to relax, explore nearby trails, or unwind under the stars, this campground provides a perfect escape from the rush of city life.` %></p>
+                        <p class="card-text">
+                            <small class="text-muted"><%= campground.location %></small>
+                        </p>
+                        <a class="btn btn-primary" href="/campgrounds/<%= campground._id %>">View <%= campground.title %></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <%- "<script>" %>
+    const maptilerApiKey = "<%- process.env.MAPTILER_API_KEY %>";
+    const campgrounds = {
+    type: "FeatureCollection",
+    features: <%- JSON.stringify(
+      campgrounds.map(campground => ({
+        type: "Feature",
+        geometry: campground.geometry,
+        properties: { popUpMarkup: campground?.properties?.popUpMarkup }
+      }))
+    ) %>
+    };
+    <%- "</script>" %>
+
+    <script src="/javascripts/clusterMap.js"></script>
+        
