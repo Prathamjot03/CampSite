@@ -1,8 +1,8 @@
+
 if (process.env.NODE_ENV !== "production") {
     require('dotenv').config({ quiet: true });
 }
 
-// console.log(process.env.SECRET);
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -22,9 +22,9 @@ const userRoutes = require('./routes/users');
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
 
-const MongoDBStore = require('connect-mongo')(session);
+const { MongoStore } = require('connect-mongo');
 
-const dbUrl = 'mongodb://localhost:27017/campSite';
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/campSite';
 
 mongoose.connect(dbUrl, {
     });
@@ -34,6 +34,8 @@ db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
     console.log("Database connected");
 });
+
+
 
 const app = express();
 app.set('query parser', 'extended');
@@ -48,9 +50,13 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(sanitizeV5({ replaceWith: '_' }));
 
-const store = new MongoDBStore({
-    url: dbUrl,
-    secret: 'thisshouldbeabettersecret!',
+const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
+
+const store = MongoStore.create({
+    mongoUrl: dbUrl,
+    crypto: {
+        secret
+    },
     touchAfter: 24 * 60 * 60
 });
 
@@ -61,7 +67,7 @@ store.on('error', function (e) {
 const sessionConfig = {
     store,
     name: 'session',
-    secret: 'thisshouldbeabettersecret!',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
